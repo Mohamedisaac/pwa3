@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Dictionary } from '../types';
 
@@ -12,16 +11,21 @@ const BrowseTab: React.FC<BrowseTabProps> = ({ dictionaries }) => {
   const [selectedDictionary, setSelectedDictionary] = useState<Dictionary | null>(null);
   const [visibleCount, setVisibleCount] = useState(ENTRIES_PER_PAGE);
 
-  const observer = useRef<IntersectionObserver>();
+  const observer = useRef<IntersectionObserver | null>(null);
 
   const loaderRef = useCallback((node: HTMLDivElement | null) => {
-    if (observer.current) observer.current.disconnect();
-    observer.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting) {
-        setVisibleCount(prev => prev + ENTRIES_PER_PAGE);
-      }
-    });
-    if (node) observer.current.observe(node);
+    if (observer.current) {
+      observer.current.disconnect();
+    }
+
+    if (node) {
+      observer.current = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount(prev => prev + ENTRIES_PER_PAGE);
+        }
+      });
+      observer.current.observe(node);
+    }
   }, []);
 
   // When a new dictionary is selected, reset the visible count
