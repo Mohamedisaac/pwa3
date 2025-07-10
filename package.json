@@ -1,6 +1,7 @@
 {
   "name": "pwa-terminology-dictionary",
-  "private": true,
+  "homepage": "https://mohamedisaac.github.io/pwa3/",
+  "private": false,
   "version": "1.0.0",
   "type": "module",
   "scripts": {
