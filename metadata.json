@@ -1,0 +1,5 @@
+{
+  "name": "Vite PWA Terminology Dictionary",
+  "description": "A fast, progressive web app for browsing and searching multiple terminology dictionaries. Find definitions for subjects like biology, geography, and Somali.",
+  "requestFramePermissions": []
+}
