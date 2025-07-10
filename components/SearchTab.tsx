@@ -7,6 +7,8 @@ interface SearchTabProps {
   dictionaries: Dictionary[];
 }
 
+const MAX_RESULTS = 50;
+
 const SearchTab: React.FC<SearchTabProps> = ({ dictionaries }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -15,18 +17,23 @@ const SearchTab: React.FC<SearchTabProps> = ({ dictionaries }) => {
     if (!trimmedSearch) return [];
 
     const results: SearchResult[] = [];
-    dictionaries.forEach(dict => {
-      dict.entries.forEach(entry => {
-        if (entry.word.trim().toLowerCase() === trimmedSearch) {
+    for (const dict of dictionaries) {
+      for (const entry of dict.entries) {
+        if (entry.word.trim().toLowerCase().startsWith(trimmedSearch)) {
           results.push({
             ...entry,
             dictionaryName: dict.name,
           });
+          if (results.length >= MAX_RESULTS) {
+            return results;
+          }
         }
-      });
-    });
+      }
+    }
     return results;
   }, [searchTerm, dictionaries]);
+
+  const hasMoreResults = searchResults.length >= MAX_RESULTS;
 
   return (
     <div className="p-4 md:p-6 animate-fade-in">
@@ -48,8 +55,13 @@ const SearchTab: React.FC<SearchTabProps> = ({ dictionaries }) => {
       <div>
         {searchTerm.trim() && searchResults.length > 0 && (
           <div className="space-y-4">
-            {searchResults.map((result, index) => (
-              <div key={index} className="bg-slate-800 p-4 rounded-lg shadow-md border-l-4 border-blue-500">
+            {hasMoreResults && (
+              <div className="bg-blue-900/70 text-blue-200 p-3 rounded-lg text-center text-sm">
+                <p>Showing the first {MAX_RESULTS} results. Please be more specific for a refined search.</p>
+              </div>
+            )}
+            {searchResults.map((result) => (
+              <div key={`${result.dictionaryName}-${result.word}`} className="bg-slate-800 p-4 rounded-lg shadow-md border-l-4 border-blue-500">
                 <h3 className="text-xl font-bold text-blue-300">{result.word}</h3>
                 <p className="text-slate-300 mt-1">{result.definition}</p>
                 <span className="inline-block bg-slate-700 text-blue-300 text-xs font-semibold mt-3 px-2 py-1 rounded-full">{result.dictionaryName}</span>

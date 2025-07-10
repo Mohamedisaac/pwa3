@@ -1,15 +1,37 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Dictionary } from '../types';
 
 interface BrowseTabProps {
   dictionaries: Dictionary[];
 }
 
+const ENTRIES_PER_PAGE = 50;
+
 const BrowseTab: React.FC<BrowseTabProps> = ({ dictionaries }) => {
   const [selectedDictionary, setSelectedDictionary] = useState<Dictionary | null>(null);
+  const [visibleCount, setVisibleCount] = useState(ENTRIES_PER_PAGE);
+
+  const observer = useRef<IntersectionObserver>();
+
+  const loaderRef = useCallback((node: HTMLDivElement | null) => {
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) {
+        setVisibleCount(prev => prev + ENTRIES_PER_PAGE);
+      }
+    });
+    if (node) observer.current.observe(node);
+  }, []);
+
+  // When a new dictionary is selected, reset the visible count
+  useEffect(() => {
+    setVisibleCount(ENTRIES_PER_PAGE);
+  }, [selectedDictionary]);
 
   if (selectedDictionary) {
+    const hasMore = visibleCount < selectedDictionary.entries.length;
+
     return (
       <div className="p-4 md:p-6 animate-fade-in">
         <button 
@@ -23,13 +45,19 @@ const BrowseTab: React.FC<BrowseTabProps> = ({ dictionaries }) => {
         </button>
         <h2 className="text-3xl font-bold text-white mb-4">{selectedDictionary.name}</h2>
         <div className="space-y-3">
-          {selectedDictionary.entries.map((entry, index) => (
-            <div key={index} className="bg-slate-800 p-4 rounded-lg">
+          {selectedDictionary.entries.slice(0, visibleCount).map((entry) => (
+            <div key={entry.word} className="bg-slate-800 p-4 rounded-lg">
               <h3 className="font-semibold text-blue-300">{entry.word}</h3>
               <p className="text-slate-300">{entry.definition}</p>
             </div>
           ))}
         </div>
+
+        {hasMore && (
+          <div ref={loaderRef} className="flex justify-center items-center p-8">
+            <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
       </div>
     );
   }
